@@ -564,7 +564,7 @@ function extractFramesForVideo(baseName, displayName, callback){
       mergedImgEl.src = blobUrl;
       mergedDlEl.href = blobUrl;
       mergedDlEl.setAttribute('download', baseName + '-contact-sheet.jpg');
-      allFiles.push({ name: baseName + '/' + baseName + '-contact-sheet.jpg', blob: blob });
+      allFiles.push({ name: baseName + '.jpg', blob: blob });
       updateZipUI();
       callback();
     }, 'image/jpeg', 0.92);
@@ -591,8 +591,6 @@ function addCardToGrid(gridEl, canvas, baseName, index){
     dlLink.href = blobUrl;
     var fileName = baseName + '-frame-' + (index + 1) + '.jpg';
     dlLink.setAttribute('download', fileName);
-    allFiles.push({ name: baseName + '/' + fileName, blob: blob });
-    updateZipUI();
   }, 'image/jpeg', 0.92);
 
   setTimeout(function(){ card.className = 'card show'; }, 20);
