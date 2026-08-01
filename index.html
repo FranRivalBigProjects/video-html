@@ -10,6 +10,7 @@
 <meta property="og:title" content="Video Frame Extractor and Contact Sheet Generator">
 <meta property="og:description" content="Pull 3 frames from any video and merge them into one full-resolution JPG contact sheet, named after your video file. Supports multiple videos at once.">
 <meta property="og:type" content="website">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -222,11 +223,45 @@
   }
   .dl-btn-main:hover{background:#dbff70;}
 
+  .zip-bar{
+    margin-top:16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 16px;
+    display:none;
+  }
+  .zip-bar.show{display:flex;}
+  .zip-bar .zip-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .zip-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    color:var(--bg);
+    background:var(--accent);
+    border:none;
+    border-radius:6px;
+    padding:9px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .zip-btn:hover{background:#dbff70;}
+  .zip-btn:disabled{opacity:.5;cursor:default;}
+
   .actions{
     margin-top:20px;
     display:flex;
     gap:10px;
     flex-wrap:wrap;
+    align-items:center;
   }
   .btn-secondary{
     font-family:'JetBrains Mono',monospace;
@@ -310,7 +345,17 @@
 
   <video id="video" muted playsinline></video>
 
+  <div class="zip-bar" id="zipBarTop">
+    <span class="zip-label" id="zipLabelTop">0 files ready</span>
+    <button class="zip-btn" id="zipBtnTop" disabled>Download all as ZIP</button>
+  </div>
+
   <div id="results"></div>
+
+  <div class="zip-bar" id="zipBarBottom">
+    <span class="zip-label" id="zipLabelBottom">0 files ready</span>
+    <button class="zip-btn" id="zipBtnBottom" disabled>Download all as ZIP</button>
+  </div>
 
   <div class="actions" id="actions" style="display:none;">
     <button class="btn-secondary" id="resetBtn">Load more videos</button>
@@ -356,6 +401,18 @@ var resetBtn = document.getElementById('resetBtn');
 var FRACTIONS = [0.25, 0.5, 0.75];
 var LABELS = ['Frame 1 - 25%', 'Frame 2 - 50%', 'Frame 3 - 75%'];
 
+var allFiles = [];
+var zipBarTop = document.getElementById('zipBarTop');
+var zipBarBottom = document.getElementById('zipBarBottom');
+var zipLabelTop = document.getElementById('zipLabelTop');
+var zipLabelBottom = document.getElementById('zipLabelBottom');
+var zipBtnTop = document.getElementById('zipBtnTop');
+var zipBtnBottom = document.getElementById('zipBtnBottom');
+var isZipping = false;
+
+zipBtnTop.addEventListener('click', downloadAllZip);
+zipBtnBottom.addEventListener('click', downloadAllZip);
+
 dropZone.addEventListener('click', function(){ fileInput.click(); });
 dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.className = 'drop drag'; });
 dropZone.addEventListener('dragleave', function(){ dropZone.className = 'drop'; });
@@ -390,6 +447,8 @@ function handleFiles(fileList){
   if (!files.length) return;
   resultsEl.innerHTML = '';
   actions.style.display = 'none';
+  allFiles = [];
+  updateZipUI();
   processIndex(files, 0);
 }
 
@@ -505,6 +564,8 @@ function extractFramesForVideo(baseName, displayName, callback){
       mergedImgEl.src = blobUrl;
       mergedDlEl.href = blobUrl;
       mergedDlEl.setAttribute('download', baseName + '-contact-sheet.jpg');
+      allFiles.push({ name: baseName + '/' + baseName + '-contact-sheet.jpg', blob: blob });
+      updateZipUI();
       callback();
     }, 'image/jpeg', 0.92);
   }
@@ -528,10 +589,64 @@ function addCardToGrid(gridEl, canvas, baseName, index){
   canvas.toBlob(function(blob){
     var blobUrl = URL.createObjectURL(blob);
     dlLink.href = blobUrl;
-    dlLink.setAttribute('download', baseName + '-frame-' + (index + 1) + '.jpg');
+    var fileName = baseName + '-frame-' + (index + 1) + '.jpg';
+    dlLink.setAttribute('download', fileName);
+    allFiles.push({ name: baseName + '/' + fileName, blob: blob });
+    updateZipUI();
   }, 'image/jpeg', 0.92);
 
   setTimeout(function(){ card.className = 'card show'; }, 20);
+}
+
+function updateZipUI(){
+  var count = allFiles.length;
+  var label = count + (count === 1 ? ' file ready' : ' files ready');
+  zipLabelTop.textContent = label;
+  zipLabelBottom.textContent = label;
+
+  var shouldShow = count > 0;
+  zipBarTop.className = 'zip-bar' + (shouldShow ? ' show' : '');
+  zipBarBottom.className = 'zip-bar' + (shouldShow ? ' show' : '');
+
+  var disable = count === 0 || isZipping;
+  zipBtnTop.disabled = disable;
+  zipBtnBottom.disabled = disable;
+}
+
+function downloadAllZip(){
+  if (isZipping || !allFiles.length) return;
+  isZipping = true;
+  updateZipUI();
+  zipBtnTop.textContent = 'Zipping...';
+  zipBtnBottom.textContent = 'Zipping...';
+  setStatus('Building ZIP with ' + allFiles.length + ' files...', true);
+
+  var zip = new JSZip();
+  for (var i = 0; i < allFiles.length; i++){
+    zip.file(allFiles[i].name, allFiles[i].blob);
+  }
+
+  zip.generateAsync({ type: 'blob' }).then(function(zipBlob){
+    var url = URL.createObjectURL(zipBlob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'video-frames-' + Date.now() + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    isZipping = false;
+    zipBtnTop.textContent = 'Download all as ZIP';
+    zipBtnBottom.textContent = 'Download all as ZIP';
+    updateZipUI();
+    setStatus('ZIP ready -- ' + allFiles.length + ' files included.', false);
+  }, function(){
+    isZipping = false;
+    zipBtnTop.textContent = 'Download all as ZIP';
+    zipBtnBottom.textContent = 'Download all as ZIP';
+    updateZipUI();
+    setStatus('Could not build the ZIP. Try again.', false);
+  });
 }
 </script>
 </body>
