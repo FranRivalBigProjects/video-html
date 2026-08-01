@@ -5,10 +5,10 @@
 <meta name="google-site-verification" content="PkLa_ViOo6FAHpvh8SacceMb95o9tePRdrqLNBz9X1M" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Video Frame Extractor and Contact Sheet Generator - Free Online Tool</title>
-<meta name="description" content="Extract 3 frames from any video and merge them into a single downloadable contact sheet image. Free, private, runs entirely in your browser. No upload, no signup.">
-<meta name="keywords" content="video frame extractor, video contact sheet generator, extract frames from video, video thumbnail sheet maker, combine video frames into one image, video to jpg">
+<meta name="description" content="Extract 3 frames from any video and merge them into a single full-resolution contact sheet image. Batch process multiple videos at once. Free, private, runs entirely in your browser.">
+<meta name="keywords" content="video frame extractor, video contact sheet generator, extract frames from video, video thumbnail sheet maker, combine video frames into one image, video to jpg, batch video frame extractor">
 <meta property="og:title" content="Video Frame Extractor and Contact Sheet Generator">
-<meta property="og:description" content="Pull 3 frames from any video and merge them into one JPG contact sheet, named after your video file. Free and private, all in your browser.">
+<meta property="og:description" content="Pull 3 frames from any video and merge them into one full-resolution JPG contact sheet, named after your video file. Supports multiple videos at once.">
 <meta property="og:type" content="website">
 <script type="application/ld+json">
 {
@@ -20,7 +20,7 @@
       "name": "Does this tool upload my video to a server?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. All processing happens locally in your browser using HTML5 video and canvas. Your video file never leaves your device."
+        "text": "No. All processing happens locally in your browser using HTML5 video and canvas. Your video files never leave your device."
       }
     },
     {
@@ -28,15 +28,15 @@
       "name": "What is a video contact sheet?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "A contact sheet is a single image made of several still frames from a video placed side by side, useful for quick previews, storyboards, and content reviews."
+        "text": "A contact sheet is a single image made of several still frames from a video placed side by side, similar to a striped flag layout, useful for quick previews and content reviews."
       }
     },
     {
       "@type": "Question",
-      "name": "What video formats are supported?",
+      "name": "Can I process more than one video at a time?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Any format your browser can play, typically MP4, WebM, and MOV."
+        "text": "Yes. You can select or drop multiple video files at once and each one is processed in sequence, with its own set of frames and contact sheet."
       }
     },
     {
@@ -120,11 +120,25 @@
   }
   .status.active{color:var(--accent);}
 
+  #results{margin-top:8px;}
+
+  .video-block{
+    margin-top:36px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+  }
+  .video-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--text);
+    margin:0 0 14px;
+    word-break:break-all;
+  }
+
   .grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:14px;
-    margin-top:24px;
   }
   @media (max-width:600px){ .grid{grid-template-columns:1fr;} }
 
@@ -172,14 +186,12 @@
   .dl-btn:hover{background:#dbff70;}
 
   .merged-section{
-    margin-top:26px;
+    margin-top:18px;
     background:var(--panel);
     border:1px solid var(--accent);
     border-radius:10px;
     padding:16px;
-    display:none;
   }
-  .merged-section.show{display:block;}
   .merged-title{
     font-family:'JetBrains Mono',monospace;
     font-size:11px;
@@ -284,53 +296,46 @@
   <header>
     <div class="eyebrow">Frame extraction, automated</div>
     <h1>Video Frame Extractor and Contact Sheet Generator</h1>
-    <p class="sub">Drop in a video and this tool automatically pulls 3 frames (at 25%, 50%, and 75% of the duration), then merges them into a single contact sheet image you can download as a JPG, named after your original video file.</p>
+    <p class="sub">Drop in one or more videos and this tool automatically pulls 3 frames from each (at 25%, 50%, and 75% of the duration), then merges them into a single full-resolution contact sheet image, named after the original video file.</p>
   </header>
 
   <div class="drop" id="dropZone">
     <div class="icon">[ + ]</div>
-    <div class="main-txt">Drag a video here or click to choose a file</div>
-    <div class="sub-txt">MP4, WEBM, MOV -- everything runs in your browser, nothing is uploaded</div>
-    <input type="file" id="fileInput" accept="video/*">
+    <div class="main-txt">Drag videos here or click to choose files</div>
+    <div class="sub-txt">MP4, WEBM, MOV -- multiple files supported -- nothing is uploaded</div>
+    <input type="file" id="fileInput" accept="video/*" multiple>
   </div>
 
   <div class="status" id="status"></div>
 
   <video id="video" muted playsinline></video>
-  <canvas id="canvas"></canvas>
 
-  <div class="grid" id="grid"></div>
-
-  <div class="merged-section" id="mergedSection">
-    <div class="merged-title">Merged contact sheet</div>
-    <img id="mergedImg" alt="Merged contact sheet">
-    <a class="dl-btn-main" id="mergedDl" href="#" download="contact-sheet.jpg">Download merged JPG</a>
-  </div>
+  <div id="results"></div>
 
   <div class="actions" id="actions" style="display:none;">
-    <button class="btn-secondary" id="resetBtn">Load another video</button>
+    <button class="btn-secondary" id="resetBtn">Load more videos</button>
   </div>
 
   <div class="info">
     <h2>How it works</h2>
     <ol class="steps">
-      <li>Choose or drop any video file. It stays on your device the entire time.</li>
-      <li>The tool automatically extracts 3 frames at 25%, 50%, and 75% of the video's duration.</li>
-      <li>The 3 frames are merged into one contact sheet image and offered as a JPG download named after your video file.</li>
+      <li>Choose or drop one or more video files. They stay on your device the entire time.</li>
+      <li>Each video is processed in sequence: 3 frames are extracted at 25%, 50%, and 75% of its duration, at full native resolution.</li>
+      <li>The 3 frames are merged side by side into one contact sheet, keeping their original size, and offered as a JPG download named after the video file.</li>
     </ol>
 
     <h2>Frequently asked questions</h2>
     <div class="faq-item">
       <div class="faq-q">Does this tool upload my video to a server?</div>
-      <p>No. All processing happens locally in your browser using HTML5 video and canvas. Your video file never leaves your device.</p>
+      <p>No. All processing happens locally in your browser using HTML5 video and canvas. Your video files never leave your device.</p>
     </div>
     <div class="faq-item">
       <div class="faq-q">What is a video contact sheet?</div>
-      <p>A contact sheet is a single image made of several still frames from a video placed side by side, useful for quick previews, storyboards, and content reviews.</p>
+      <p>A contact sheet is a single image made of several still frames from a video placed side by side, similar to a striped flag layout, useful for quick previews and content reviews.</p>
     </div>
     <div class="faq-item">
-      <div class="faq-q">What video formats are supported?</div>
-      <p>Any format your browser can play, typically MP4, WebM, and MOV.</p>
+      <div class="faq-q">Can I process more than one video at a time?</div>
+      <p>Yes. You can select or drop multiple video files at once and each one is processed in sequence, with its own set of frames and contact sheet.</p>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is this tool free to use?</div>
@@ -343,20 +348,13 @@
 var dropZone = document.getElementById('dropZone');
 var fileInput = document.getElementById('fileInput');
 var video = document.getElementById('video');
-var grid = document.getElementById('grid');
+var resultsEl = document.getElementById('results');
 var statusEl = document.getElementById('status');
 var actions = document.getElementById('actions');
 var resetBtn = document.getElementById('resetBtn');
-var mergedSection = document.getElementById('mergedSection');
-var mergedImg = document.getElementById('mergedImg');
-var mergedDl = document.getElementById('mergedDl');
 
 var FRACTIONS = [0.25, 0.5, 0.75];
 var LABELS = ['Frame 1 - 25%', 'Frame 2 - 50%', 'Frame 3 - 75%'];
-var MAX_FRAME_WIDTH = 640;
-var GAP = 6;
-
-var currentBaseName = 'video';
 
 dropZone.addEventListener('click', function(){ fileInput.click(); });
 dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.className = 'drop drag'; });
@@ -364,16 +362,20 @@ dropZone.addEventListener('dragleave', function(){ dropZone.className = 'drop'; 
 dropZone.addEventListener('drop', function(e){
   e.preventDefault();
   dropZone.className = 'drop';
-  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
 fileInput.addEventListener('change', function(e){
-  if (e.target.files[0]) handleFile(e.target.files[0]);
+  if (e.target.files.length) handleFiles(e.target.files);
 });
 resetBtn.addEventListener('click', function(){ location.reload(); });
 
 function setStatus(msg, active){
   statusEl.textContent = msg;
   statusEl.className = 'status' + (active ? ' active' : '');
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function sanitizeBaseName(fileName){
@@ -383,56 +385,56 @@ function sanitizeBaseName(fileName){
   return clean.length ? clean : 'video';
 }
 
-function handleFile(file){
-  grid.innerHTML = '';
+function handleFiles(fileList){
+  var files = Array.prototype.slice.call(fileList);
+  if (!files.length) return;
+  resultsEl.innerHTML = '';
   actions.style.display = 'none';
-  mergedSection.className = 'merged-section';
-  currentBaseName = sanitizeBaseName(file.name);
+  processIndex(files, 0);
+}
 
-  var url = URL.createObjectURL(file);
-  video.src = url;
-  setStatus('Loading video metadata...', true);
-
-  video.addEventListener('loadedmetadata', function onMeta(){
-    video.removeEventListener('loadedmetadata', onMeta);
-    extractFrames();
-  });
-  video.addEventListener('error', function onErr(){
-    video.removeEventListener('error', onErr);
-    setStatus('Could not read this video file.', false);
+function processIndex(files, i){
+  if (i >= files.length){
+    setStatus('Done -- ' + files.length + ' video(s) processed.', false);
+    actions.style.display = 'flex';
+    return;
+  }
+  var file = files[i];
+  setStatus('Processing video ' + (i + 1) + ' of ' + files.length + ': ' + file.name, true);
+  processOneVideo(file, function(){
+    processIndex(files, i + 1);
   });
 }
 
-function extractFrames(){
-  var duration = video.duration;
-  var srcW = video.videoWidth;
-  var srcH = video.videoHeight;
-  var frameW = Math.min(MAX_FRAME_WIDTH, srcW);
-  var frameH = Math.round(frameW * (srcH / srcW));
+function processOneVideo(file, done){
+  var baseName = sanitizeBaseName(file.name);
+  var objUrl = URL.createObjectURL(file);
+  video.src = objUrl;
 
-  var frameCanvases = [];
-  var index = 0;
-
-  function next(){
-    if (index >= FRACTIONS.length){
-      finish(frameCanvases, frameW, frameH);
-      return;
-    }
-    setStatus('Extracting frame ' + (index + 1) + ' of ' + FRACTIONS.length + '...', true);
-    var t = duration * FRACTIONS[index];
-    seekTo(t, function(){
-      var c = document.createElement('canvas');
-      c.width = frameW;
-      c.height = frameH;
-      var ctx = c.getContext('2d');
-      ctx.drawImage(video, 0, 0, frameW, frameH);
-      frameCanvases.push(c);
-      addCard(c.toDataURL('image/jpeg', 0.92), index);
-      index = index + 1;
-      next();
+  function onMeta(){
+    video.removeEventListener('loadedmetadata', onMeta);
+    video.removeEventListener('error', onErr);
+    extractFramesForVideo(baseName, file.name, function(){
+      URL.revokeObjectURL(objUrl);
+      done();
     });
   }
-  next();
+  function onErr(){
+    video.removeEventListener('loadedmetadata', onMeta);
+    video.removeEventListener('error', onErr);
+    addErrorBlock(file.name);
+    URL.revokeObjectURL(objUrl);
+    done();
+  }
+  video.addEventListener('loadedmetadata', onMeta);
+  video.addEventListener('error', onErr);
+}
+
+function addErrorBlock(fileName){
+  var block = document.createElement('div');
+  block.className = 'video-block';
+  block.innerHTML = '<h3 class="video-title">' + escapeHtml(fileName) + '</h3><p class="sub">Could not read this file as a video.</p>';
+  resultsEl.appendChild(block);
 }
 
 function seekTo(time, callback){
@@ -444,43 +446,92 @@ function seekTo(time, callback){
   video.currentTime = time;
 }
 
-function addCard(dataUrl, index){
-  var card = document.createElement('div');
-  card.className = 'card';
-  card.innerHTML =
-    '<img src="' + dataUrl + '" alt="' + LABELS[index] + '">' +
-    '<div class="card-foot">' +
-      '<span class="card-label">' + LABELS[index] + '</span>' +
-      '<a class="dl-btn" href="' + dataUrl + '" download="frame-' + (index + 1) + '.jpg">JPG</a>' +
+function extractFramesForVideo(baseName, displayName, callback){
+  var duration = video.duration;
+  var frameW = video.videoWidth;
+  var frameH = video.videoHeight;
+
+  var block = document.createElement('div');
+  block.className = 'video-block';
+  block.innerHTML =
+    '<h3 class="video-title">' + escapeHtml(displayName) + '</h3>' +
+    '<div class="grid"></div>' +
+    '<div class="merged-section">' +
+      '<div class="merged-title">Merged contact sheet (full size, 3-way split)</div>' +
+      '<img class="merged-img" alt="Merged contact sheet">' +
+      '<a class="dl-btn-main merged-dl" href="#">Download merged JPG</a>' +
     '</div>';
-  grid.appendChild(card);
-  setTimeout(function(){ card.className = 'card show'; }, 20);
-}
+  resultsEl.appendChild(block);
 
-function finish(frameCanvases, frameW, frameH){
-  var total = frameCanvases.length;
-  var compW = (frameW * total) + (GAP * (total - 1));
-  var comp = document.createElement('canvas');
-  comp.width = compW;
-  comp.height = frameH;
-  var ctx = comp.getContext('2d');
-  ctx.fillStyle = '#0d0f0e';
-  ctx.fillRect(0, 0, compW, frameH);
+  var gridEl = block.getElementsByClassName('grid')[0];
+  var mergedImgEl = block.getElementsByClassName('merged-img')[0];
+  var mergedDlEl = block.getElementsByClassName('merged-dl')[0];
 
-  var x = 0;
-  for (var i = 0; i < total; i++){
-    ctx.drawImage(frameCanvases[i], x, 0, frameW, frameH);
-    x = x + frameW + GAP;
+  var frameCanvases = [];
+  var index = 0;
+
+  function next(){
+    if (index >= FRACTIONS.length){
+      finishMerge();
+      return;
+    }
+    var t = duration * FRACTIONS[index];
+    seekTo(t, function(){
+      var c = document.createElement('canvas');
+      c.width = frameW;
+      c.height = frameH;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(video, 0, 0, frameW, frameH);
+      frameCanvases.push(c);
+      addCardToGrid(gridEl, c, baseName, index);
+      index = index + 1;
+      next();
+    });
   }
 
-  var mergedUrl = comp.toDataURL('image/jpeg', 0.92);
-  mergedImg.src = mergedUrl;
-  mergedDl.href = mergedUrl;
-  mergedDl.setAttribute('download', currentBaseName + '-contact-sheet.jpg');
-  mergedSection.className = 'merged-section show';
+  function finishMerge(){
+    var total = frameCanvases.length;
+    var comp = document.createElement('canvas');
+    comp.width = frameW * total;
+    comp.height = frameH;
+    var ctx = comp.getContext('2d');
+    var x = 0;
+    for (var i = 0; i < total; i++){
+      ctx.drawImage(frameCanvases[i], x, 0, frameW, frameH);
+      x = x + frameW;
+    }
+    comp.toBlob(function(blob){
+      var blobUrl = URL.createObjectURL(blob);
+      mergedImgEl.src = blobUrl;
+      mergedDlEl.href = blobUrl;
+      mergedDlEl.setAttribute('download', baseName + '-contact-sheet.jpg');
+      callback();
+    }, 'image/jpeg', 0.92);
+  }
 
-  setStatus('Done -- 3 frames extracted and merged automatically.', false);
-  actions.style.display = 'flex';
+  next();
+}
+
+function addCardToGrid(gridEl, canvas, baseName, index){
+  var card = document.createElement('div');
+  card.className = 'card';
+  var previewUrl = canvas.toDataURL('image/jpeg', 0.8);
+  card.innerHTML =
+    '<img src="' + previewUrl + '" alt="' + LABELS[index] + '">' +
+    '<div class="card-foot">' +
+      '<span class="card-label">' + LABELS[index] + '</span>' +
+      '<a class="dl-btn" href="#">JPG</a>' +
+    '</div>';
+  gridEl.appendChild(card);
+
+  var dlLink = card.getElementsByClassName('dl-btn')[0];
+  canvas.toBlob(function(blob){
+    var blobUrl = URL.createObjectURL(blob);
+    dlLink.href = blobUrl;
+    dlLink.setAttribute('download', baseName + '-frame-' + (index + 1) + '.jpg');
+  }, 'image/jpeg', 0.92);
+
+  setTimeout(function(){ card.className = 'card show'; }, 20);
 }
 </script>
 </body>
