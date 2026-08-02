@@ -550,14 +550,19 @@ function extractFramesForVideo(baseName, displayName, callback){
 
   function finishMerge(){
     var total = frameCanvases.length;
+    var stripeW = Math.floor(frameW / total);
     var comp = document.createElement('canvas');
-    comp.width = frameW * total;
+    comp.width = stripeW * total;
     comp.height = frameH;
     var ctx = comp.getContext('2d');
-    var x = 0;
+
     for (var i = 0; i < total; i++){
-      ctx.drawImage(frameCanvases[i], x, 0, frameW, frameH);
-      x = x + frameW;
+      var sx = Math.floor((frameW - stripeW) / 2);
+      ctx.drawImage(
+        frameCanvases[i],
+        sx, 0, stripeW, frameH,
+        i * stripeW, 0, stripeW, frameH
+      );
     }
     comp.toBlob(function(blob){
       var blobUrl = URL.createObjectURL(blob);
